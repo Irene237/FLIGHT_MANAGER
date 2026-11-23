@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Airport extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'code',
+        'name',
+        'city',
+        'country',
+        'address',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    // Vols qui partent de cet aéroport
+    public function departingFlights(): HasMany
+    {
+        return $this->hasMany(Flight::class, 'departure_airport_id');
+    }
+
+    // Vols qui arrivent à cet aéroport
+    public function arrivingFlights(): HasMany
+    {
+        return $this->hasMany(Flight::class, 'arrival_airport_id');
+    }
+}

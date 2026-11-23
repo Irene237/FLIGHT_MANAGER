@@ -436,7 +436,7 @@
         <div class="nav-right">
             <nav class="nav-links" aria-label="Navigation principale">
                 <a href="{{ route('accueil') }}">Accueil</a>
-                <a href="{{ route('accueil') }}#recherche">Rechercher un vol</a>
+                <a href="{{ route('vols.recherche') }}">Rechercher un vol</a>
                 <a href="#reservations">Mes réservations</a>
                 <a href="#voyages">Mes voyages</a>
             </nav>
@@ -461,23 +461,71 @@
             </form>
         </div>
 
+        
         <!-- PROCHAIN VOYAGE -->
-        <section class="card next-trip-card" id="voyages">
-            <div>
-                <div class="next-trip-eyebrow">Votre prochain voyage</div>
-                <div class="route-row">
-                    <span class="city-code">DOUALA</span>
-                    <span class="route-plane" aria-hidden="true">✈</span>
-                    <span class="city-code">PARIS</span>
-                </div>
-                <div class="flight-meta">15 novembre 2026 • Vol FL001</div>
+<section class="card next-trip-card" id="voyages">
+
+    @if($nextTrip && $nextTrip->flight)
+
+        <div>
+            <div class="next-trip-eyebrow">Votre prochain voyage</div>
+
+            <div class="route-row">
+                <span class="city-code">
+                    {{ $nextTrip->flight->departureAirport->city ?? 'Départ' }}
+                </span>
+
+                <span class="route-plane" aria-hidden="true">✈</span>
+
+                <span class="city-code">
+                    {{ $nextTrip->flight->arrivalAirport->city ?? 'Arrivée' }}
+                </span>
             </div>
 
-            <div class="next-trip-right">
-                <span class="badge badge-confirmed">Confirmé</span>
-                <a href="#voyages" class="btn-primary">Voir mon voyage</a>
+            <div class="flight-meta">
+                {{ $nextTrip->flight->departure_at->format('d/m/Y à H:i') }}
+                • Vol {{ $nextTrip->flight->flight_number }}
+                • Réservation {{ $nextTrip->reference }}
             </div>
-        </section>
+        </div>
+
+        <div class="next-trip-right">
+
+            <span class="badge
+                {{ $nextTrip->status === 'confirmed' ? 'badge-confirmed' : 'badge-pending' }}">
+                {{ $nextTrip->status === 'confirmed' ? 'Confirmé' : 'En attente' }}
+            </span>
+
+            <a href="#reservations" class="btn-primary">
+                Voir ma réservation
+            </a>
+
+        </div>
+
+    @else
+
+        <div>
+            <div class="next-trip-eyebrow">Votre prochain voyage</div>
+
+            <div class="route-row">
+                <span class="city-code">✈️</span>
+                <span class="city-code">Aucun voyage prévu</span>
+            </div>
+
+            <div class="flight-meta">
+                Vous n'avez pas encore de réservation pour un vol à venir.
+            </div>
+        </div>
+
+        <div class="next-trip-right">
+            <a href="{{ route('vols.recherche') }}" class="btn-primary">
+                Rechercher un vol
+            </a>
+        </div>
+
+    @endif
+
+</section>
 
         <!-- ACTIONS RAPIDES + RESERVATIONS RECENTES -->
         <div class="middle-grid">
@@ -487,15 +535,16 @@
                 <h2 class="card-title">Que souhaitez-vous faire ?</h2>
 
                 <div class="actions-grid">
-                    <a href="{{ route('accueil') }}#recherche" class="action-tile">
+                    <a href="{{ route('vols.recherche') }}" class="action-tile">
                         <h3>Rechercher un vol</h3>
                         <p>Trouvez votre prochaine destination</p>
                     </a>
 
-                    <a href="#bagages" class="action-tile">
-                        <h3>Gérer mes bagages</h3>
+                    
+                    <a href="{{ route('bagages.index') }}" class="action-tile">
+    <h3>Gérer mes bagages</h3>
                         <p>Ajoutez ou consultez vos bagages</p>
-                    </a>
+</a>
 
                     <a href="#enregistrement" class="action-tile">
                         <h3>M'enregistrer</h3>
@@ -509,32 +558,84 @@
                 </div>
             </section>
 
+           
             <!-- MES RESERVATIONS RECENTES -->
-            <section class="card" id="reservations">
-                <h2 class="card-title">Mes réservations récentes</h2>
+<section class="card" id="reservations">
 
-                <table class="reservations-table">
-                    <thead>
-                        <tr>
-                            <th>Référence</th>
-                            <th>Trajet</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="ref-code">RES-2026-001</td>
-                            <td class="route-text">Douala → Paris</td>
-                            <td><span class="badge badge-confirmed">Confirmée</span></td>
-                        </tr>
-                        <tr>
-                            <td class="ref-code">RES-2026-002</td>
-                            <td class="route-text">Yaoundé → Dakar</td>
-                            <td><span class="badge badge-pending">En attente</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+    <h2 class="card-title">Mes réservations récentes</h2>
+
+    <table class="reservations-table">
+        <thead>
+            <tr>
+                <th>Référence</th>
+                <th>Trajet</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @forelse($recentReservations as $reservation)
+
+                <tr>
+                    <td class="ref-code">
+                        {{ $reservation->reference }}
+                    </td>
+
+                    <td class="route-text">
+                        @if($reservation->flight)
+                            {{ $reservation->flight->departureAirport->city ?? 'Départ' }}
+                            →
+                            {{ $reservation->flight->arrivalAirport->city ?? 'Arrivée' }}
+                        @else
+                            Vol indisponible
+                        @endif
+                    </td>
+
+                    <td>
+                        @php
+                            $status = strtolower($reservation->status);
+                        @endphp
+
+                        <span class="badge
+                            {{ in_array($status, ['confirmed', 'confirmée', 'confirmee']) ? 'badge-confirmed' : 'badge-pending' }}">
+
+                            @switch($status)
+                                @case('confirmed')
+                                @case('confirmee')
+                                @case('confirmée')
+                                    Confirmée
+                                    @break
+
+                                @case('cancelled')
+                                @case('canceled')
+                                @case('annulee')
+                                @case('annulée')
+                                    Annulée
+                                    @break
+
+                                @default
+                                    En attente
+                            @endswitch
+
+                        </span>
+                    </td>
+                </tr>
+
+            @empty
+
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 25px 5px; color: #718296;">
+                        Vous n'avez pas encore effectué de réservation.
+                    </td>
+                </tr>
+
+            @endforelse
+
+        </tbody>
+    </table>
+
+</section>
 
         </div>
 
