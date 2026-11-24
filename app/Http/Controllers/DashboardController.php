@@ -13,10 +13,11 @@ class DashboardController extends Controller
         // Récupérer les cinq réservations les plus récentes
         // de l'utilisateur connecté.
         $recentReservations = $user->reservations()
-            ->with([
-                'flight.departureAirport',
-                'flight.arrivalAirport'
-            ])
+           ->with([
+    'flight.departureAirport',
+    'flight.arrivalAirport',
+    'payments'
+])
             ->latest('reserved_at')
             ->take(5)
             ->get();

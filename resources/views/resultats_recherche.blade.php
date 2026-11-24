@@ -494,7 +494,9 @@
 
                 <!-- ACTION -->
                 <div class="action-col">
-                    <a href="#" class="choose-btn">Choisir ce vol</a>
+                    <a href="{{ route('reservations.create', $flight->id) }}" class="choose-btn">
+    Choisir ce vol
+</a>
                 </div>
             </article>
 

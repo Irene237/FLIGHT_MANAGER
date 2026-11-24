@@ -437,7 +437,9 @@
             <nav class="nav-links" aria-label="Navigation principale">
                 <a href="{{ route('accueil') }}">Accueil</a>
                 <a href="{{ route('vols.recherche') }}">Rechercher un vol</a>
-                <a href="#reservations">Mes réservations</a>
+               <a href="{{ route('reservations.index') }}">
+    Mes réservations
+</a>
                 <a href="#voyages">Mes voyages</a>
             </nav>
 
@@ -565,75 +567,80 @@
     <h2 class="card-title">Mes réservations récentes</h2>
 
     <table class="reservations-table">
-        <thead>
+    <thead>
+        <tr>
+            <th>Référence</th>
+            <th>Trajet</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @forelse($recentReservations as $reservation)
+
             <tr>
-                <th>Référence</th>
-                <th>Trajet</th>
-                <th>Statut</th>
+                <td class="ref-code">
+                    {{ $reservation->reference }}
+                </td>
+
+                <td class="route-text">
+                    @if($reservation->flight)
+                        {{ $reservation->flight->departureAirport->city ?? 'Départ' }}
+                        →
+                        {{ $reservation->flight->arrivalAirport->city ?? 'Arrivée' }}
+                    @else
+                        Vol indisponible
+                    @endif
+                </td>
+
+                <td>
+                    @php
+                        $status = strtolower($reservation->status);
+                    @endphp
+
+                    <span class="badge
+                        {{ $status === 'confirmed' ? 'badge-confirmed' : 'badge-pending' }}">
+                        @switch($status)
+                            @case('confirmed')
+                                Confirmée
+                                @break
+
+                            @case('cancelled')
+                            @case('canceled')
+                                Annulée
+                                @break
+
+                            @default
+                                En attente
+                        @endswitch
+                    </span>
+                </td>
+
+                <td>
+                    @if($status === 'confirmed')
+                        <a href="{{ route('paiements.pdf', $reservation) }}"
+                           class="btn-primary">
+                            Télécharger le billet
+                        </a>
+                    @elseif($status === 'pending')
+                        <a href="{{ route('paiements.create', $reservation) }}"
+                           class="btn-primary">
+                            Payer
+                        </a>
+                    @endif
+                </td>
             </tr>
-        </thead>
 
-        <tbody>
-
-            @forelse($recentReservations as $reservation)
-
-                <tr>
-                    <td class="ref-code">
-                        {{ $reservation->reference }}
-                    </td>
-
-                    <td class="route-text">
-                        @if($reservation->flight)
-                            {{ $reservation->flight->departureAirport->city ?? 'Départ' }}
-                            →
-                            {{ $reservation->flight->arrivalAirport->city ?? 'Arrivée' }}
-                        @else
-                            Vol indisponible
-                        @endif
-                    </td>
-
-                    <td>
-                        @php
-                            $status = strtolower($reservation->status);
-                        @endphp
-
-                        <span class="badge
-                            {{ in_array($status, ['confirmed', 'confirmée', 'confirmee']) ? 'badge-confirmed' : 'badge-pending' }}">
-
-                            @switch($status)
-                                @case('confirmed')
-                                @case('confirmee')
-                                @case('confirmée')
-                                    Confirmée
-                                    @break
-
-                                @case('cancelled')
-                                @case('canceled')
-                                @case('annulee')
-                                @case('annulée')
-                                    Annulée
-                                    @break
-
-                                @default
-                                    En attente
-                            @endswitch
-
-                        </span>
-                    </td>
-                </tr>
-
-            @empty
-
-                <tr>
-                    <td colspan="3" style="text-align: center; padding: 25px 5px; color: #718296;">
-                        Vous n'avez pas encore effectué de réservation.
-                    </td>
-                </tr>
-
-            @endforelse
-
-        </tbody>
-    </table>
+        @empty
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 25px 5px; color: #718296;">
+                    Vous n'avez pas encore effectué de réservation.
+                </td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
 
 </section>
 

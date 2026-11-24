@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BaggageController;
 use App\Http\Controllers\FlightSearchController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\PaymentController;
 
 // Page d'accueil
 Route::get('/', function () {
@@ -35,10 +37,19 @@ Route::get('/tableau-de-bord', [DashboardController::class, 'index'])
     ->middleware('auth')
     ->name('dashboard');
 
+    // Mes réservations
+Route::get('/mes-reservations', [ReservationController::class, 'index'])
+    ->middleware('auth')
+    ->name('reservations.index');
+
 // Gestion des bagages
 Route::get('/mes-bagages', [BaggageController::class, 'index'])
     ->middleware('auth')
     ->name('bagages.index');
+
+Route::post('/mes-reservations/{reservation}/annuler', [ReservationController::class, 'cancel'])
+    ->middleware('auth')
+    ->name('reservations.cancel');
 
 Route::post('/mes-bagages', [BaggageController::class, 'store'])
     ->middleware('auth')
@@ -51,3 +62,25 @@ Route::get('/recherche-vols', [FlightSearchController::class, 'index'])
 // Résultats de recherche
 Route::get('/resultats-recherche', [FlightSearchController::class, 'search'])
     ->name('vols.resultats');
+
+// Réservation d'un vol
+Route::get('/reservation/{flight}', [ReservationController::class, 'create'])
+    ->middleware('auth')
+    ->name('reservations.create');
+
+Route::post('/reservation/{flight}', [ReservationController::class, 'store'])
+    ->middleware('auth')
+    ->name('reservations.store');
+
+    // Paiement
+Route::get('/paiement/{reservation}', [PaymentController::class, 'create'])
+    ->middleware('auth')
+    ->name('paiements.create');
+
+Route::post('/paiement/{reservation}', [PaymentController::class, 'store'])
+    ->middleware('auth')
+    ->name('paiements.store');
+
+Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'downloadPdf'])
+    ->middleware('auth')
+    ->name('paiements.pdf');
