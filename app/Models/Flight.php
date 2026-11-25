@@ -49,4 +49,12 @@ class Flight extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    /**
+     * Les enregistrements en ligne du vol.
+     */
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(CheckIn::class);
+    }
 }

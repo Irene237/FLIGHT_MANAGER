@@ -440,7 +440,7 @@
                <a href="{{ route('reservations.index') }}">
     Mes réservations
 </a>
-                <a href="#voyages">Mes voyages</a>
+                <a href="{{ route('voyages.index') }}">Mes voyages</a>
             </nav>
 
             <a href="{{ route('dashboard') }}" class="account-pill">Mon compte</a>
@@ -548,15 +548,22 @@
                         <p>Ajoutez ou consultez vos bagages</p>
 </a>
 
-                    <a href="#enregistrement" class="action-tile">
-                        <h3>M'enregistrer</h3>
-                        <p>Effectuez votre check-in en ligne</p>
-                    </a>
+                    <a href="{{ route('checkin.index') }}" class="action-tile">
+    <h3>M'enregistrer</h3>
+    <p>Effectuez votre check-in en ligne</p>
+</a>
 
-                    <a href="#suivi" class="action-tile">
-                        <h3>Suivre un vol</h3>
-                        <p>Consultez le statut de votre vol</p>
-                    </a>
+                   @if($nextTrip && $nextTrip->flight)
+    <a href="{{ route('vols.suivi', $nextTrip->id) }}" class="action-tile">
+        <h3>Suivre un vol</h3>
+        <p>Consultez le statut de votre vol</p>
+    </a>
+@else
+    <a href="{{ route('reservations.index') }}" class="action-tile">
+        <h3>Suivre un vol</h3>
+        <p>Consultez vos réservations pour suivre un voyage</p>
+    </a>
+@endif
                 </div>
             </section>
 
@@ -653,7 +660,9 @@
                 <p>Retrouvez les informations de votre réservation ou consultez votre historique de voyages.</p>
             </div>
 
-            <a href="#reservations" class="btn-primary">Consulter mes voyages</a>
+            <a href="{{ route('voyages.index') }}" class="btn-primary">
+    Consulter mes voyages
+</a>
         </section>
 
     </main>

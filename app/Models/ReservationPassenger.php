@@ -34,4 +34,12 @@ class ReservationPassenger extends Model
     {
         return $this->hasMany(Baggage::class);
     }
+
+    /**
+     * Les enregistrements en ligne du passager.
+     */
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(CheckIn::class);
+    }
 }

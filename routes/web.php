@@ -7,6 +7,10 @@ use App\Http\Controllers\BaggageController;
 use App\Http\Controllers\FlightSearchController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\FlightTrackingController;
+use App\Http\Controllers\VoyageHistoryController;
+use App\Http\Controllers\VoyageDetailsController;
 
 // Page d'accueil
 Route::get('/', function () {
@@ -41,6 +45,11 @@ Route::get('/tableau-de-bord', [DashboardController::class, 'index'])
 Route::get('/mes-reservations', [ReservationController::class, 'index'])
     ->middleware('auth')
     ->name('reservations.index');
+
+    // Suivi du vol
+Route::get('/suivi-vol/{reservation}', [FlightTrackingController::class, 'show'])
+    ->middleware('auth')
+    ->name('vols.suivi');
 
 // Gestion des bagages
 Route::get('/mes-bagages', [BaggageController::class, 'index'])
@@ -84,3 +93,29 @@ Route::post('/paiement/{reservation}', [PaymentController::class, 'store'])
 Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'downloadPdf'])
     ->middleware('auth')
     ->name('paiements.pdf');
+
+    // Enregistrement en ligne
+Route::get('/enregistrement-en-ligne', [CheckInController::class, 'index'])
+    ->middleware('auth')
+    ->name('checkin.index');
+
+Route::post('/enregistrement-en-ligne/{reservation}/{passenger}', [CheckInController::class, 'store'])
+    ->middleware('auth')
+    ->name('checkin.store');
+
+// Carte d'embarquement
+Route::get('/carte-embarquement/{checkIn}', [CheckInController::class, 'boardingPass'])
+    ->middleware('auth')
+    ->name('checkin.boarding-pass');
+
+Route::get('/carte-embarquement/{checkIn}/pdf', [CheckInController::class, 'downloadPdf'])
+    ->middleware('auth')
+    ->name('checkin.pdf');
+
+Route::get('/mes-voyages', [VoyageHistoryController::class, 'index'])
+    ->middleware('auth')
+    ->name('voyages.index');
+
+Route::get('/mes-voyages/{reservation}/details', [VoyageDetailsController::class, 'show'])
+    ->middleware('auth')
+    ->name('voyages.details');

@@ -47,11 +47,16 @@ class Reservation extends Model
         return $this->hasMany(Baggage::class);
     }
 
-    /**
-     * Une réservation peut avoir plusieurs paiements.
-     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Les enregistrements en ligne de cette réservation.
+     */
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(CheckIn::class);
     }
 }
