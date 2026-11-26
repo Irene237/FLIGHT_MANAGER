@@ -16,25 +16,29 @@ class AuthController extends Controller
     }
 
     // Traiter la connexion
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+    // Traiter la connexion des clients
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+    // Autoriser uniquement les comptes ayant le rôle client
+    $credentials['role'] = 'client';
 
-            return redirect()->intended(route('dashboard'));
-        }
+    if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $request->session()->regenerate();
 
-        return back()
-            ->withErrors([
-                'email' => 'Adresse e-mail ou mot de passe incorrect.',
-            ])
-            ->onlyInput('email');
+        return redirect()->intended(route('dashboard'));
     }
+
+    return back()
+        ->withErrors([
+            'email' => 'Identifiants incorrects ou compte non autorisé dans cet espace.',
+        ])
+        ->onlyInput('email');
+}
 
     // Afficher la page d'inscription
     public function showRegister()

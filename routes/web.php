@@ -13,6 +13,10 @@ use App\Http\Controllers\FlightTrackingController;
 use App\Http\Controllers\VoyageHistoryController;
 use App\Http\Controllers\VoyageDetailsController;
 
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminFlightController;
+
 
 // ======================================================
 // PAGE D'ACCUEIL
@@ -24,7 +28,7 @@ Route::get('/', function () {
 
 
 // ======================================================
-// AUTHENTIFICATION
+// AUTHENTIFICATION CLIENT
 // ======================================================
 
 // Connexion
@@ -60,15 +64,12 @@ Route::get('/tableau-de-bord', [DashboardController::class, 'index'])
 // RECHERCHE DE VOLS
 // ======================================================
 
-// Afficher le formulaire de recherche
 Route::get('/recherche-vols', [FlightSearchController::class, 'index'])
     ->name('vols.recherche');
 
-// Afficher les résultats de recherche
 Route::get('/resultats-recherche', [FlightSearchController::class, 'search'])
     ->name('vols.resultats');
 
-// Afficher tous les vols disponibles
 Route::get('/vols-disponibles', [FlightSearchController::class, 'allAvailable'])
     ->name('vols.disponibles');
 
@@ -77,12 +78,10 @@ Route::get('/vols-disponibles', [FlightSearchController::class, 'allAvailable'])
 // RÉSERVATIONS
 // ======================================================
 
-// Mes réservations
 Route::get('/mes-reservations', [ReservationController::class, 'index'])
     ->middleware('auth')
     ->name('reservations.index');
 
-// Réserver un vol
 Route::get('/reservation/{flight}', [ReservationController::class, 'create'])
     ->middleware('auth')
     ->name('reservations.create');
@@ -91,7 +90,6 @@ Route::post('/reservation/{flight}', [ReservationController::class, 'store'])
     ->middleware('auth')
     ->name('reservations.store');
 
-// Annuler une réservation
 Route::post('/mes-reservations/{reservation}/annuler', [ReservationController::class, 'cancel'])
     ->middleware('auth')
     ->name('reservations.cancel');
@@ -110,17 +108,14 @@ Route::get('/suivi-vol/{reservation}', [FlightTrackingController::class, 'show']
 // PAIEMENTS ET BILLETS
 // ======================================================
 
-// Afficher la page de paiement
 Route::get('/paiement/{reservation}', [PaymentController::class, 'create'])
     ->middleware('auth')
     ->name('paiements.create');
 
-// Effectuer le paiement
 Route::post('/paiement/{reservation}', [PaymentController::class, 'store'])
     ->middleware('auth')
     ->name('paiements.store');
 
-// Télécharger le billet PDF
 Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'downloadPdf'])
     ->middleware('auth')
     ->name('paiements.pdf');
@@ -130,12 +125,10 @@ Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'dow
 // BAGAGES
 // ======================================================
 
-// Afficher mes bagages
 Route::get('/mes-bagages', [BaggageController::class, 'index'])
     ->middleware('auth')
     ->name('bagages.index');
 
-// Enregistrer un bagage
 Route::post('/mes-bagages', [BaggageController::class, 'store'])
     ->middleware('auth')
     ->name('bagages.store');
@@ -145,12 +138,10 @@ Route::post('/mes-bagages', [BaggageController::class, 'store'])
 // ENREGISTREMENT EN LIGNE (CHECK-IN)
 // ======================================================
 
-// Afficher les réservations éligibles
 Route::get('/enregistrement-en-ligne', [CheckInController::class, 'index'])
     ->middleware('auth')
     ->name('checkin.index');
 
-// Effectuer l'enregistrement d'un passager
 Route::post('/enregistrement-en-ligne/{reservation}/{passenger}', [CheckInController::class, 'store'])
     ->middleware('auth')
     ->name('checkin.store');
@@ -160,12 +151,10 @@ Route::post('/enregistrement-en-ligne/{reservation}/{passenger}', [CheckInContro
 // CARTES D'EMBARQUEMENT
 // ======================================================
 
-// Afficher la carte d'embarquement
 Route::get('/carte-embarquement/{checkIn}', [CheckInController::class, 'boardingPass'])
     ->middleware('auth')
     ->name('checkin.boarding-pass');
 
-// Télécharger la carte d'embarquement en PDF
 Route::get('/carte-embarquement/{checkIn}/pdf', [CheckInController::class, 'downloadPdf'])
     ->middleware('auth')
     ->name('checkin.pdf');
@@ -179,7 +168,38 @@ Route::get('/mes-voyages', [VoyageHistoryController::class, 'index'])
     ->middleware('auth')
     ->name('voyages.index');
 
-// Détails d'un voyage
 Route::get('/mes-voyages/{reservation}/details', [VoyageDetailsController::class, 'show'])
     ->middleware('auth')
     ->name('voyages.details');
+
+
+// ======================================================
+// ESPACE ADMINISTRATEUR
+// ======================================================
+
+// Connexion administrateur
+Route::get('/admin/connexion', [AdminAuthController::class, 'showLogin'])
+    ->name('admin.login');
+
+Route::post('/admin/connexion', [AdminAuthController::class, 'login'])
+    ->name('admin.login.submit');
+
+
+// Routes protégées de l'administration
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+
+    // Tableau de bord
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Gestion des vols : CRUD
+    Route::resource('vols', AdminFlightController::class)
+    ->parameters(['vols' => 'flight'])
+    ->except(['show'])
+    ->names('flights');
+
+    // Déconnexion administrateur
+    Route::post('/deconnexion', [AdminAuthController::class, 'logout'])
+        ->name('logout');
+
+});
