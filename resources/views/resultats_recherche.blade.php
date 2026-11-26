@@ -47,6 +47,7 @@
         }
 
         /* ===== TOPBAR ===== */
+
         .topbar {
             height: 68px;
             background: var(--surface);
@@ -109,6 +110,7 @@
         }
 
         /* ===== MAIN CONTAINER ===== */
+
         .page-container {
             max-width: 1120px;
             margin: 0 auto;
@@ -159,6 +161,7 @@
         }
 
         /* ===== SEARCH SUMMARY BANNER ===== */
+
         .search-summary {
             background: var(--surface);
             border: 1px solid var(--border-soft);
@@ -184,6 +187,13 @@
             color: var(--text-muted);
         }
 
+        .summary-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .btn-primary {
             display: inline-flex;
             align-items: center;
@@ -205,7 +215,28 @@
             background: var(--blue-hover);
         }
 
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 22px;
+            border-radius: 8px;
+            background: #eef4fb;
+            color: var(--blue);
+            font-size: 12.5px;
+            font-weight: 700;
+            border: 1px solid #d9e6f5;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-secondary:hover {
+            background: #dceafa;
+        }
+
         /* ===== FLIGHT RESULT CARDS ===== */
+
         .flight-card {
             background: var(--surface);
             border: 1px solid var(--border-soft);
@@ -283,7 +314,31 @@
             background: var(--blue-hover);
         }
 
+        /* ===== FALLBACK MESSAGE ===== */
+
+        .alternative-message {
+            background: #eef6ff;
+            border: 1px solid #cfe3fa;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .alternative-message h2 {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .alternative-message p {
+            font-size: 13px;
+            color: #52647a;
+            line-height: 1.6;
+        }
+
         /* ===== EMPTY STATE ===== */
+
         .empty-state {
             background: var(--surface);
             border: 1px solid var(--border-soft);
@@ -312,6 +367,7 @@
         }
 
         /* ===== RESPONSIVE ===== */
+
         @media (max-width: 960px) {
             .flight-card {
                 grid-template-columns: repeat(3, 1fr);
@@ -351,6 +407,14 @@
                 align-items: flex-start;
             }
 
+            .summary-actions {
+                width: 100%;
+            }
+
+            .summary-actions a {
+                flex: 1;
+            }
+
             .flight-card {
                 grid-template-columns: 1fr 1fr;
             }
@@ -369,149 +433,346 @@
 <body>
 
     @php
-        $departureAirport = \App\Models\Airport::find($searchData['departure_airport_id'] ?? null);
-        $arrivalAirport = \App\Models\Airport::find($searchData['arrival_airport_id'] ?? null);
+        $isAllFlightsPage = $isAllFlightsPage ?? false;
+        $isFallback = $isFallback ?? false;
+
+        $departureAirport = !empty($searchData['departure_airport_id'])
+            ? \App\Models\Airport::find($searchData['departure_airport_id'])
+            : null;
+
+        $arrivalAirport = !empty($searchData['arrival_airport_id'])
+            ? \App\Models\Airport::find($searchData['arrival_airport_id'])
+            : null;
+
         $formattedDate = !empty($searchData['departure_date'])
             ? \Carbon\Carbon::parse($searchData['departure_date'])->locale('fr')->translatedFormat('d F Y')
             : '';
+
         $passengersCount = (int) ($searchData['passengers'] ?? 1);
+
         $cabinLabels = [
             'economique' => 'Économique',
             'affaires' => 'Affaires',
             'premiere' => 'Première',
         ];
+
         $cabinLabel = $cabinLabels[$searchData['cabin_class'] ?? 'economique'] ?? 'Économique';
     @endphp
 
     <!-- BARRE DE NAVIGATION -->
+
     <header class="topbar">
+
         <a href="{{ route('accueil') }}" class="brand">
-    <span>✈️</span>
-    <span>FLIGHT MANAGER</span>
-</a>
+            <span>✈️</span>
+            <span>FLIGHT MANAGER</span>
+        </a>
 
         <div class="nav-right">
+
             <nav class="nav-links" aria-label="Navigation principale">
+
                 <a href="{{ route('accueil') }}">Accueil</a>
-                <a href="{{ route('vols.recherche') }}" class="active">Rechercher un vol</a>
-                <a href="{{ route('dashboard') }}#reservations">Mes réservations</a>
-                <a href="{{ route('dashboard') }}#voyages">Mes voyages</a>
+
+                <a href="{{ route('vols.recherche') }}" class="active">
+                    Rechercher un vol
+                </a>
+
+                <a href="{{ route('vols.disponibles') }}">
+                    Tous les vols
+                </a>
+
+                @auth
+                    <a href="{{ route('reservations.index') }}">
+                        Mes réservations
+                    </a>
+
+                    <a href="{{ route('voyages.index') }}">
+                        Mes voyages
+                    </a>
+                @endauth
+
             </nav>
 
             @auth
-                <a href="{{ route('dashboard') }}" class="account-pill">Mon compte</a>
+                <a href="{{ route('dashboard') }}" class="account-pill">
+                    Mon compte
+                </a>
             @else
-                <a href="{{ route('connexion') }}" class="account-pill">Connexion</a>
+                <a href="{{ route('connexion') }}" class="account-pill">
+                    Connexion
+                </a>
             @endauth
+
         </div>
+
     </header>
 
     <main class="page-container">
 
         <!-- DECONNEXION -->
+
         <div class="logout-bar">
+
             @auth
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="logout-btn">↪ Déconnexion</button>
+
+                    <button type="submit" class="logout-btn">
+                        ↪ Déconnexion
+                    </button>
                 </form>
             @endauth
+
         </div>
 
         <!-- TITRE -->
+
         <div class="page-heading">
-            <h1>Résultats de recherche</h1>
-            <p>
-                Vols disponibles :
-                {{ $departureAirport?->city ?? 'Départ' }} ({{ $departureAirport?->code ?? '---' }})
-                →
-                {{ $arrivalAirport?->city ?? 'Arrivée' }} ({{ $arrivalAirport?->code ?? '---' }})
-                @if($formattedDate)
-                    • {{ $formattedDate }}
-                @endif
-            </p>
+
+            @if($isAllFlightsPage)
+
+                <h1>Tous les vols disponibles</h1>
+
+                <p>
+                    Consultez les vols programmés et choisissez votre destination.
+                </p>
+
+            @elseif($isFallback)
+
+                <h1>Aucun résultat exact</h1>
+
+                <p>
+                    Nous vous proposons d'autres vols disponibles dans notre programme.
+                </p>
+
+            @else
+
+                <h1>Résultats de recherche</h1>
+
+                <p>
+                    Vols disponibles :
+
+                    {{ $departureAirport?->city ?? 'Départ' }}
+                    ({{ $departureAirport?->code ?? '---' }})
+
+                    →
+
+                    {{ $arrivalAirport?->city ?? 'Arrivée' }}
+                    ({{ $arrivalAirport?->code ?? '---' }})
+
+                    @if($formattedDate)
+                        • {{ $formattedDate }}
+                    @endif
+                </p>
+
+            @endif
+
         </div>
 
         <!-- RESUME DE LA RECHERCHE -->
+
         <section class="search-summary">
+
             <div class="summary-route">
-                <h2>
-                    {{ $departureAirport?->city ?? 'Départ' }} ({{ $departureAirport?->code ?? '---' }})
-                    →
-                    {{ $arrivalAirport?->city ?? 'Arrivée' }} ({{ $arrivalAirport?->code ?? '---' }})
-                </h2>
-                <p>
-                    @if($formattedDate)
-                        {{ $formattedDate }} •
-                    @endif
-                    {{ $passengersCount }} {{ $passengersCount > 1 ? 'adultes' : 'adulte' }} • {{ $cabinLabel }}
-                </p>
+
+                @if($isAllFlightsPage)
+
+                    <h2>Programme des vols</h2>
+
+                    <p>
+                        Consultez tous les vols actuellement disponibles.
+                    </p>
+
+                @else
+
+                    <h2>
+                        {{ $departureAirport?->city ?? 'Départ' }}
+
+                        →
+
+                        {{ $arrivalAirport?->city ?? 'Arrivée' }}
+                    </h2>
+
+                    <p>
+
+                        @if($formattedDate)
+                            {{ $formattedDate }} •
+                        @endif
+
+                        {{ $passengersCount }}
+
+                        {{ $passengersCount > 1 ? 'passagers' : 'passager' }}
+
+                        • {{ $cabinLabel }}
+
+                    </p>
+
+                @endif
+
             </div>
 
-            <a href="{{ route('vols.recherche', $searchData) }}" class="btn-primary">
-                Modifier la recherche
-            </a>
+            <div class="summary-actions">
+
+                <a href="{{ route('vols.recherche') }}" class="btn-primary">
+                    Nouvelle recherche
+                </a>
+
+                @unless($isAllFlightsPage)
+                    <a href="{{ route('vols.disponibles') }}" class="btn-secondary">
+                        Tous les vols
+                    </a>
+                @endunless
+
+            </div>
+
         </section>
 
+        <!-- MESSAGE SI AUCUN RESULTAT EXACT -->
+
+        @if($isFallback && $flights->isNotEmpty())
+
+            <section class="alternative-message">
+
+                <h2>
+                    Aucun vol ne correspond exactement à votre recherche.
+                </h2>
+
+                <p>
+                    Nous n'avons pas trouvé de vol correspondant à votre trajet
+                    et à la date sélectionnée. Voici d'autres vols disponibles
+                    que vous pouvez consulter.
+                </p>
+
+            </section>
+
+        @endif
+
         <!-- LISTE DES VOLS -->
+
         @forelse($flights as $flight)
+
             @php
                 $depTime = \Carbon\Carbon::parse($flight->departure_at);
                 $arrTime = \Carbon\Carbon::parse($flight->arrival_at);
+
                 $totalMinutes = $depTime->diffInMinutes($arrTime);
+
                 $hours = intdiv($totalMinutes, 60);
-                $minutes = str_pad((string) ($totalMinutes % 60), 2, '0', STR_PAD_LEFT);
+
+                $minutes = str_pad(
+                    (string) ($totalMinutes % 60),
+                    2,
+                    '0',
+                    STR_PAD_LEFT
+                );
             @endphp
 
             <article class="flight-card">
+
                 <!-- HEURE DEPART -->
+
                 <div class="time-col">
-                    <strong>{{ $depTime->format('H:i') }}</strong>
-                    <span>{{ $flight->departureAirport?->code }}</span>
+
+                    <strong>
+                        {{ $depTime->format('H:i') }}
+                    </strong>
+
+                    <span>
+                        {{ $flight->departureAirport?->code }}
+                    </span>
+
                 </div>
 
                 <!-- DUREE -->
+
                 <div class="duration-col">
+
                     <span aria-hidden="true">✈</span>
-                    <span>{{ $hours }} h {{ $minutes }}</span>
+
+                    <span>
+                        {{ $hours }} h {{ $minutes }}
+                    </span>
+
                 </div>
 
                 <!-- HEURE ARRIVEE -->
+
                 <div class="time-col">
-                    <strong>{{ $arrTime->format('H:i') }}</strong>
-                    <span>{{ $flight->arrivalAirport?->code }}</span>
+
+                    <strong>
+                        {{ $arrTime->format('H:i') }}
+                    </strong>
+
+                    <span>
+                        {{ $flight->arrivalAirport?->code }}
+                    </span>
+
                 </div>
 
-                <!-- COMPAGNIE / VOL -->
+                <!-- COMPAGNIE / AVION -->
+
                 <div class="airline-col">
+
                     {{ $flight->airline ?? $flight->aircraft?->model ?? 'Flight Manager Air' }}
+
+                    <br>
+
+                    <small>
+                        {{ $flight->flight_number }}
+                    </small>
+
                 </div>
 
                 <!-- PRIX -->
+
                 <div class="price-col">
+
                     {{ number_format($flight->price, 0, ',', ' ') }} FCFA
+
+                    <br>
+
+                    <small style="font-size: 11px; color: #718296; font-weight: 500;">
+                        {{ $flight->available_seats }} places disponibles
+                    </small>
+
                 </div>
 
                 <!-- ACTION -->
+
                 <div class="action-col">
-                    <a href="{{ route('reservations.create', $flight->id) }}" class="choose-btn">
-    Choisir ce vol
-</a>
+
+                    <a href="{{ route('reservations.create', $flight->id) }}"
+                       class="choose-btn">
+
+                        Choisir ce vol
+
+                    </a>
+
                 </div>
+
             </article>
 
         @empty
 
             <section class="empty-state">
+
                 <div class="empty-icon">✈️</div>
-                <h2>Aucun vol disponible</h2>
+
+                <h2>
+                    Aucun vol disponible pour le moment
+                </h2>
+
                 <p>
-                    Aucun vol ne correspond à votre recherche pour cette date.
-                    Essayez une autre date ou un autre trajet.
+                    Aucun vol ne correspond à votre recherche et aucun autre vol
+                    n'est actuellement disponible dans notre programme.
+                    Essayez une autre date ou consultez notre programme ultérieurement.
                 </p>
-                <a href="{{ route('vols.recherche', $searchData) }}" class="btn-primary">
-                    Modifier ma recherche
+
+                <a href="{{ route('vols.recherche') }}" class="btn-primary">
+                    Rechercher un vol
                 </a>
+
             </section>
 
         @endforelse

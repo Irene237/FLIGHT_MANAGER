@@ -257,6 +257,26 @@
             background: var(--blue-hover);
         }
 
+        .btn-all-flights {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border: 1px solid var(--blue);
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-all-flights:hover {
+    background: #eef4fb;
+    color: var(--blue-hover);
+}
         /* ===== POPULAR DESTINATIONS ===== */
         .popular-card h2 {
             font-size: 14.5px;
@@ -489,6 +509,14 @@
 
             </form>
         </section>
+
+
+            <!-- ACCÈS À TOUS LES VOLS -->
+    <div style="display: flex; justify-content: center; margin: -6px 0 22px;">
+        <a href="{{ route('vols.disponibles') }}" class="btn-all-flights">
+            ✈️ Voir tous les vols disponibles
+        </a>
+    </div>
 
         <!-- DESTINATIONS POPULAIRES -->
         <section class="card popular-card">

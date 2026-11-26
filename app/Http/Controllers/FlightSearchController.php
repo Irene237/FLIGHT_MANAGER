@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class FlightSearchController extends Controller
 {
     /**
-     * Afficher la page de recherche des vols.
+     * Afficher la page de recherche.
      */
     public function index()
     {
@@ -21,7 +21,7 @@ class FlightSearchController extends Controller
     }
 
     /**
-     * Rechercher les vols disponibles dans MariaDB.
+     * Rechercher les vols correspondant aux critères.
      */
     public function search(Request $request)
     {
@@ -32,17 +32,9 @@ class FlightSearchController extends Controller
             'return_date' => 'nullable|date|after_or_equal:departure_date',
             'passengers' => 'required|integer|min:1|max:9',
             'cabin_class' => 'nullable|in:economique,affaires,premiere',
-        ], [
-            'departure_airport_id.required' => 'Veuillez choisir une ville de départ.',
-            'arrival_airport_id.required' => 'Veuillez choisir une ville d’arrivée.',
-            'arrival_airport_id.different' => 'Les villes de départ et d’arrivée doivent être différentes.',
-            'departure_date.required' => 'Veuillez choisir une date de départ.',
-            'departure_date.after_or_equal' => 'La date de départ ne peut pas être dans le passé.',
-            'return_date.after_or_equal' => 'La date de retour doit être postérieure ou égale à la date de départ.',
-            'passengers.required' => 'Veuillez indiquer le nombre de passagers.',
         ]);
 
-        // Récupérer les vols correspondant aux critères.
+        // Recherche exacte.
         $flights = Flight::with([
                 'departureAirport',
                 'arrivalAirport',
@@ -51,13 +43,60 @@ class FlightSearchController extends Controller
             ->where('departure_airport_id', $validated['departure_airport_id'])
             ->where('arrival_airport_id', $validated['arrival_airport_id'])
             ->whereDate('departure_at', $validated['departure_date'])
+            ->where('departure_at', '>=', now())
             ->where('available_seats', '>=', $validated['passengers'])
+            ->where('status', 'scheduled')
+            ->orderBy('departure_at')
+            ->get();
+
+        $isFallback = false;
+
+        // Si aucun résultat exact, proposer les autres vols disponibles.
+        if ($flights->isEmpty()) {
+
+            $flights = Flight::with([
+                    'departureAirport',
+                    'arrivalAirport',
+                    'aircraft'
+                ])
+                ->where('departure_at', '>=', now())
+                ->where('available_seats', '>=', $validated['passengers'])
+                ->where('status', 'scheduled')
+                ->orderBy('departure_at')
+                ->get();
+
+            $isFallback = true;
+        }
+
+        return view('resultats_recherche', [
+            'flights' => $flights,
+            'searchData' => $validated,
+            'isFallback' => $isFallback,
+            'isAllFlightsPage' => false,
+        ]);
+    }
+
+    /**
+     * Afficher tous les vols disponibles.
+     */
+    public function allAvailable()
+    {
+        $flights = Flight::with([
+                'departureAirport',
+                'arrivalAirport',
+                'aircraft'
+            ])
+            ->where('departure_at', '>=', now())
+            ->where('available_seats', '>', 0)
+            ->where('status', 'scheduled')
             ->orderBy('departure_at')
             ->get();
 
         return view('resultats_recherche', [
             'flights' => $flights,
-            'searchData' => $validated,
+            'searchData' => [],
+            'isFallback' => false,
+            'isAllFlightsPage' => true,
         ]);
     }
 }
