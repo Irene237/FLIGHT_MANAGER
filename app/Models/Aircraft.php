@@ -29,4 +29,9 @@ class Aircraft extends Model
     {
         return $this->hasMany(Flight::class);
     }
+
+   public function maintenanceInterventions(): HasMany
+{
+    return $this->hasMany(MaintenanceIntervention::class);
+}
 }

@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
+// ======================================================
+// CONTRÔLEURS CLIENT
+// ======================================================
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BaggageController;
@@ -13,9 +17,19 @@ use App\Http\Controllers\FlightTrackingController;
 use App\Http\Controllers\VoyageHistoryController;
 use App\Http\Controllers\VoyageDetailsController;
 
+// ======================================================
+// CONTRÔLEURS ADMINISTRATEUR
+// ======================================================
+
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminFlightController;
+use App\Http\Controllers\Admin\AdminAircraftController;
+use App\Http\Controllers\Admin\AdminReservationController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminBaggageController;
+use App\Http\Controllers\Admin\CrewMemberController;
+use App\Http\Controllers\Admin\SystemSettingController;
 
 
 // ======================================================
@@ -31,21 +45,22 @@ Route::get('/', function () {
 // AUTHENTIFICATION CLIENT
 // ======================================================
 
-// Connexion
-Route::get('/connexion', [AuthController::class, 'showLogin'])
-    ->name('connexion');
+Route::middleware('guest')->group(function () {
 
-Route::post('/connexion', [AuthController::class, 'login'])
-    ->name('login');
+    Route::get('/connexion', [AuthController::class, 'showLogin'])
+        ->name('connexion');
 
-// Inscription
-Route::get('/inscription', [AuthController::class, 'showRegister'])
-    ->name('inscription');
+    Route::post('/connexion', [AuthController::class, 'login'])
+        ->name('login');
 
-Route::post('/inscription', [AuthController::class, 'register'])
-    ->name('inscription.store');
+    Route::get('/inscription', [AuthController::class, 'showRegister'])
+        ->name('inscription');
 
-// Déconnexion
+    Route::post('/inscription', [AuthController::class, 'register'])
+        ->name('inscription.store');
+
+});
+
 Route::post('/deconnexion', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -75,24 +90,24 @@ Route::get('/vols-disponibles', [FlightSearchController::class, 'allAvailable'])
 
 
 // ======================================================
-// RÉSERVATIONS
+// RÉSERVATIONS CLIENT
 // ======================================================
 
-Route::get('/mes-reservations', [ReservationController::class, 'index'])
-    ->middleware('auth')
-    ->name('reservations.index');
+Route::middleware('auth')->group(function () {
 
-Route::get('/reservation/{flight}', [ReservationController::class, 'create'])
-    ->middleware('auth')
-    ->name('reservations.create');
+    Route::get('/mes-reservations', [ReservationController::class, 'index'])
+        ->name('reservations.index');
 
-Route::post('/reservation/{flight}', [ReservationController::class, 'store'])
-    ->middleware('auth')
-    ->name('reservations.store');
+    Route::get('/reservation/{flight}', [ReservationController::class, 'create'])
+        ->name('reservations.create');
 
-Route::post('/mes-reservations/{reservation}/annuler', [ReservationController::class, 'cancel'])
-    ->middleware('auth')
-    ->name('reservations.cancel');
+    Route::post('/reservation/{flight}', [ReservationController::class, 'store'])
+        ->name('reservations.store');
+
+    Route::post('/mes-reservations/{reservation}/annuler', [ReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
+
+});
 
 
 // ======================================================
@@ -108,76 +123,84 @@ Route::get('/suivi-vol/{reservation}', [FlightTrackingController::class, 'show']
 // PAIEMENTS ET BILLETS
 // ======================================================
 
-Route::get('/paiement/{reservation}', [PaymentController::class, 'create'])
-    ->middleware('auth')
-    ->name('paiements.create');
+Route::middleware('auth')->group(function () {
 
-Route::post('/paiement/{reservation}', [PaymentController::class, 'store'])
-    ->middleware('auth')
-    ->name('paiements.store');
+    Route::get('/paiement/{reservation}', [PaymentController::class, 'create'])
+        ->name('paiements.create');
 
-Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'downloadPdf'])
-    ->middleware('auth')
-    ->name('paiements.pdf');
+    Route::post('/paiement/{reservation}', [PaymentController::class, 'store'])
+        ->name('paiements.store');
+
+    Route::get('/paiement/{reservation}/billet-pdf', [PaymentController::class, 'downloadPdf'])
+        ->name('paiements.pdf');
+
+});
 
 
 // ======================================================
-// BAGAGES
+// BAGAGES CLIENT
 // ======================================================
 
-Route::get('/mes-bagages', [BaggageController::class, 'index'])
-    ->middleware('auth')
-    ->name('bagages.index');
+Route::middleware('auth')->group(function () {
 
-Route::post('/mes-bagages', [BaggageController::class, 'store'])
-    ->middleware('auth')
-    ->name('bagages.store');
+    Route::get('/mes-bagages', [BaggageController::class, 'index'])
+        ->name('bagages.index');
+
+    Route::post('/mes-bagages', [BaggageController::class, 'store'])
+        ->name('bagages.store');
+
+});
 
 
 // ======================================================
 // ENREGISTREMENT EN LIGNE (CHECK-IN)
 // ======================================================
 
-Route::get('/enregistrement-en-ligne', [CheckInController::class, 'index'])
-    ->middleware('auth')
-    ->name('checkin.index');
+Route::middleware('auth')->group(function () {
 
-Route::post('/enregistrement-en-ligne/{reservation}/{passenger}', [CheckInController::class, 'store'])
-    ->middleware('auth')
-    ->name('checkin.store');
+    Route::get('/enregistrement-en-ligne', [CheckInController::class, 'index'])
+        ->name('checkin.index');
+
+    Route::post('/enregistrement-en-ligne/{reservation}/{passenger}', [CheckInController::class, 'store'])
+        ->name('checkin.store');
+
+});
 
 
 // ======================================================
 // CARTES D'EMBARQUEMENT
 // ======================================================
 
-Route::get('/carte-embarquement/{checkIn}', [CheckInController::class, 'boardingPass'])
-    ->middleware('auth')
-    ->name('checkin.boarding-pass');
+Route::middleware('auth')->group(function () {
 
-Route::get('/carte-embarquement/{checkIn}/pdf', [CheckInController::class, 'downloadPdf'])
-    ->middleware('auth')
-    ->name('checkin.pdf');
+    Route::get('/carte-embarquement/{checkIn}', [CheckInController::class, 'boardingPass'])
+        ->name('checkin.boarding-pass');
+
+    Route::get('/carte-embarquement/{checkIn}/pdf', [CheckInController::class, 'downloadPdf'])
+        ->name('checkin.pdf');
+
+});
 
 
 // ======================================================
 // HISTORIQUE DES VOYAGES
 // ======================================================
 
-Route::get('/mes-voyages', [VoyageHistoryController::class, 'index'])
-    ->middleware('auth')
-    ->name('voyages.index');
+Route::middleware('auth')->group(function () {
 
-Route::get('/mes-voyages/{reservation}/details', [VoyageDetailsController::class, 'show'])
-    ->middleware('auth')
-    ->name('voyages.details');
+    Route::get('/mes-voyages', [VoyageHistoryController::class, 'index'])
+        ->name('voyages.index');
+
+    Route::get('/mes-voyages/{reservation}/details', [VoyageDetailsController::class, 'show'])
+        ->name('voyages.details');
+
+});
 
 
 // ======================================================
-// ESPACE ADMINISTRATEUR
+// CONNEXION ADMINISTRATEUR
 // ======================================================
 
-// Connexion administrateur
 Route::get('/admin/connexion', [AdminAuthController::class, 'showLogin'])
     ->name('admin.login');
 
@@ -185,21 +208,149 @@ Route::post('/admin/connexion', [AdminAuthController::class, 'login'])
     ->name('admin.login.submit');
 
 
-// Routes protégées de l'administration
-Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+// ======================================================
+// ROUTES ADMINISTRATEUR PROTÉGÉES
+// ======================================================
 
-    // Tableau de bord
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-        ->name('dashboard');
+Route::middleware('admin')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-    // Gestion des vols : CRUD
-    Route::resource('vols', AdminFlightController::class)
-    ->parameters(['vols' => 'flight'])
-    ->except(['show'])
-    ->names('flights');
+        // --------------------------------------------------
+        // TABLEAU DE BORD
+        // --------------------------------------------------
 
-    // Déconnexion administrateur
-    Route::post('/deconnexion', [AdminAuthController::class, 'logout'])
-        ->name('logout');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
 
-});
+
+        // --------------------------------------------------
+        // GESTION DES VOLS
+        // --------------------------------------------------
+
+        Route::resource('vols', AdminFlightController::class)
+            ->parameters(['vols' => 'flight'])
+            ->except(['show'])
+            ->names('flights');
+
+
+        // --------------------------------------------------
+        // GESTION DES AVIONS
+        // --------------------------------------------------
+
+        Route::resource('avions', AdminAircraftController::class)
+            ->parameters(['avions' => 'aircraft'])
+            ->names('aircraft');
+
+
+        // --------------------------------------------------
+        // GESTION DES RÉSERVATIONS
+        // --------------------------------------------------
+
+        Route::get('/reservations/export/pdf', [AdminReservationController::class, 'exportPdf'])
+            ->name('reservations.export.pdf');
+
+        Route::get('/reservations', [AdminReservationController::class, 'index'])
+            ->name('reservations.index');
+
+
+        // --------------------------------------------------
+        // GESTION DES UTILISATEURS
+        // --------------------------------------------------
+
+        Route::get('/utilisateurs', [AdminUserController::class, 'index'])
+            ->name('users.index');
+
+        Route::get('/utilisateurs/creer', [AdminUserController::class, 'create'])
+            ->name('users.create');
+
+        Route::post('/utilisateurs', [AdminUserController::class, 'store'])
+            ->name('users.store');
+
+
+        // --------------------------------------------------
+        // GESTION DES BAGAGES
+        // --------------------------------------------------
+
+        Route::get('/bagages', [AdminBaggageController::class, 'index'])
+            ->name('baggage.index');
+
+        Route::get('/bagages/creer', [AdminBaggageController::class, 'create'])
+            ->name('baggage.create');
+
+        Route::post('/bagages', [AdminBaggageController::class, 'store'])
+            ->name('baggage.store');
+
+        Route::get('/bagages/{baggage}/modifier', [AdminBaggageController::class, 'edit'])
+            ->name('baggage.edit');
+
+        Route::put('/bagages/{baggage}', [AdminBaggageController::class, 'update'])
+            ->name('baggage.update');
+
+        Route::delete('/bagages/{baggage}', [AdminBaggageController::class, 'destroy'])
+            ->name('baggage.destroy');
+
+
+        // --------------------------------------------------
+        // SIGNALEMENT DES INCIDENTS DE BAGAGES
+        // --------------------------------------------------
+
+        Route::post('/bagages/incidents', [AdminBaggageController::class, 'reportIncident'])
+            ->name('baggage.incidents.store');
+
+
+        // --------------------------------------------------
+        // GESTION DES ÉQUIPAGES
+        // --------------------------------------------------
+
+        Route::get('/equipages', [CrewMemberController::class, 'index'])
+            ->name('crew.index');
+
+        Route::get('/equipages/creer', [CrewMemberController::class, 'create'])
+            ->name('crew.create');
+
+        Route::post('/equipages', [CrewMemberController::class, 'store'])
+            ->name('crew.store');
+
+        Route::get('/equipages/{crewMember}/modifier', [CrewMemberController::class, 'edit'])
+            ->name('crew.edit');
+
+        Route::put('/equipages/{crewMember}', [CrewMemberController::class, 'update'])
+            ->name('crew.update');
+
+        Route::delete('/equipages/{crewMember}', [CrewMemberController::class, 'destroy'])
+            ->name('crew.destroy');
+
+
+        // AFFECTATION D'UN MEMBRE À UN VOL
+
+        Route::post('/equipages/affecter', [CrewMemberController::class, 'storeAssignment'])
+            ->name('crew.assignments.store');
+
+
+        // ANNULATION D'UNE AFFECTATION
+
+        Route::post('/equipages/affectations/{assignment}/annuler', [CrewMemberController::class, 'cancelAssignment'])
+            ->name('crew.assignments.cancel');
+
+
+        // --------------------------------------------------
+        // PARAMÈTRES SYSTÈME
+        // --------------------------------------------------
+
+        Route::get('/parametres', [SystemSettingController::class, 'index'])
+            ->name('settings.index');
+
+        Route::put('/parametres', [SystemSettingController::class, 'update'])
+            ->name('settings.update');
+
+
+        // --------------------------------------------------
+        // DÉCONNEXION ADMINISTRATEUR
+        // --------------------------------------------------
+
+        Route::post('/deconnexion', [AdminAuthController::class, 'logout'])
+            ->name('logout');
+
+    });

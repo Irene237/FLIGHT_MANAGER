@@ -30,31 +30,51 @@ class Flight extends Model
         'available_seats' => 'integer',
     ];
 
+    /**
+     * Aéroport de départ du vol.
+     */
     public function departureAirport(): BelongsTo
     {
         return $this->belongsTo(Airport::class, 'departure_airport_id');
     }
 
+    /**
+     * Aéroport d'arrivée du vol.
+     */
     public function arrivalAirport(): BelongsTo
     {
         return $this->belongsTo(Airport::class, 'arrival_airport_id');
     }
 
+    /**
+     * Avion affecté au vol.
+     */
     public function aircraft(): BelongsTo
     {
         return $this->belongsTo(Aircraft::class);
     }
 
+    /**
+     * Réservations effectuées pour ce vol.
+     */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
     /**
-     * Les enregistrements en ligne du vol.
+     * Enregistrements d'embarquement en ligne.
      */
     public function checkIns(): HasMany
     {
         return $this->hasMany(CheckIn::class);
+    }
+
+    /**
+     * Équipages affectés à ce vol.
+     */
+    public function crewAssignments(): HasMany
+    {
+        return $this->hasMany(CrewAssignment::class);
     }
 }

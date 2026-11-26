@@ -563,22 +563,50 @@
         <div class="nav-group-label">MENU PRINCIPAL</div>
 
         <nav class="nav-list">
-            <a href="{{ route('admin.dashboard') }}" class="nav-item active">
-                <span>⌂</span>
-                <span>Vue d'ensemble</span>
-            </a>
 
-          <a href="{{ route('admin.flights.index') }}" class="nav-item">
-    <span>✈</span>
-    <span>Gestion des vols</span>
+    <a href="{{ route('admin.dashboard') }}" class="nav-item active">
+        <span>⌂</span>
+        <span>Vue d'ensemble</span>
+    </a>
+
+    <a href="{{ route('admin.flights.index') }}" class="nav-item">
+        <span>✈</span>
+        <span>Gestion des vols</span>
+    </a>
+
+    <a href="{{ route('admin.aircraft.index') }}" class="nav-item">
+        <span>▣</span>
+        <span>Avions &amp; destinations</span>
+    </a>
+
+
+    <a href="{{ route('admin.reservations.index') }}" class="nav-item">
+    <span class="menu-icon">▣</span>
+    <span>Réservations</span>
 </a>
-            <a href="#" class="nav-item"><span>▣</span><span>Avions &amp; destinations</span></a>
-            <a href="#" class="nav-item"><span>▤</span><span>Réservations</span></a>
-            <a href="#" class="nav-item"><span>♙</span><span>Utilisateurs</span></a>
-            <a href="#" class="nav-item"><span>▣</span><span>Bagages</span></a>
-            <a href="#" class="nav-item"><span>♧</span><span>Équipages</span></a>
-            <a href="#" class="nav-item"><span>⚙</span><span>Paramètres système</span></a>
-        </nav>
+
+ <a href="{{ route('admin.users.index') }}" class="nav-item">
+    <span class="menu-icon">▣</span>
+    <span>Utilisateurs</span>
+</a>
+
+
+     <a href="{{ route('admin.baggage.index') }}" class="nav-item">
+        <span>▣</span>
+        <span>Bagages</span>
+    </a>
+
+   <a href="{{ route('admin.crew.index') }}" class="nav-item">
+        <span>♧</span>
+        <span>Équipages</span>
+    </a>
+
+    <a href="{{ route('admin.settings.index') }}" class="nav-item">
+        <span>⚙</span>
+        <span>Paramètres système</span>
+    </a>
+
+</nav>
     </div>
 
     <div class="sidebar-footer">
